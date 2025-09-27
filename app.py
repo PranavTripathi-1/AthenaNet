@@ -1,68 +1,28 @@
 # app.py
 import streamlit as st
-import torch
-import numpy as np
-import pandas as pd
-from pathlib import Path
-from src.infrastructure.text_encoder import TextEncoder
-from src.infrastructure.audio_encoder import AudioEncoder
-from src.infrastructure.fusion_model import FusionClassifier
-from src.infrastructure.predictor import Predictor
-from src.usecases.run_assessment import run_full_assessment
-import soundfile as sf
+from src.usecases.run_assessment import run_assessment
+import tempfile
 
-# ---------------------------
-# Load models
-# ---------------------------
-st.set_page_config(page_title="AthenaNet - Early Neuropsychiatric Detection", layout="wide")
-st.title("AthenaNet 🧠 - Early Neuropsychiatric Risk Detection")
+st.title("AthenaNet: Early Detection of Neuropsychiatric Disorders")
 
-model_dir = Path("models")
-text_encoder_path = model_dir / "text_encoder.pt"
-audio_encoder_path = model_dir / "audio_encoder.pt"
-fusion_model_path = model_dir / "fusion_classifier.pt"
+# User input
+text_input = st.text_area("Enter your feelings/thoughts:")
 
-st.sidebar.header("Model Status")
-try:
-    text_encoder = TextEncoder(str(text_encoder_path))
-    audio_encoder = AudioEncoder(str(audio_encoder_path))
-    fusion_model = FusionClassifier(str(fusion_model_path))
-    predictor = Predictor(text_encoder, audio_encoder, fusion_model)
-    st.sidebar.success("Models loaded successfully ✅")
-except Exception as e:
-    st.sidebar.error(f"Error loading models: {e}")
+audio_input = st.file_uploader("Upload an audio clip (wav)", type=["wav"])
 
-# ---------------------------
-# User Input
-# ---------------------------
-st.header("Assessment Inputs")
-text_input = st.text_area("Enter your thoughts / text for assessment:", height=150)
-audio_input = st.file_uploader("Upload a short voice recording (WAV format):", type=["wav"])
-
-# ---------------------------
-# Run Prediction
-# ---------------------------
-if st.button("Run Assessment"):
-    if not text_input:
-        st.warning("Please enter text input for assessment!")
-    elif not audio_input:
-        st.warning("Please upload an audio file!")
+if st.button("Assess"):
+    if not text_input or not audio_input:
+        st.error("Please provide both text and audio inputs.")
     else:
-        # Save temporary audio
-        audio_path = "temp_audio.wav"
-        with open(audio_path, "wb") as f:
-            f.write(audio_input.getbuffer())
+        # Save temporary audio file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+            tmp_file.write(audio_input.read())
+            audio_path = tmp_file.name
         
-        # Run assessment pipeline
-        try:
-            result = run_assessment(predictor, text_input, audio_path)
-            st.subheader("Assessment Result")
-            st.metric("Risk Score", f"{result*100:.2f}%")
-            if result > 0.7:
-                st.warning("⚠️ High risk detected. Consider consulting a professional.")
-            elif result > 0.4:
-                st.info("🟡 Moderate risk. Monitor your mental health closely.")
-            else:
-                st.success("🟢 Low risk. Keep up healthy practices!")
-        except Exception as e:
-            st.error(f"Error during prediction: {e}")
+        # Run prediction
+        score = run_assessment(text_input, audio_path)
+        st.success(f"Predicted Risk Score: {score:.3f}")
+        if score > 0.5:
+            st.warning("High risk detected! Consider seeking professional help.")
+        else:
+            st.info("Low risk detected. Keep monitoring your mental health.")
