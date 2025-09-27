@@ -1,0 +1,6 @@
+text,audio_path,label
+"I feel anxious and stressed","data/sample_0.wav",1
+"My mood is low","data/sample_1.wav",1
+"I am happy today","data/sample_2.wav",0
+"I feel excited","data/sample_3.wav",0
+"I have trouble sleeping","data/sample_4.wav",1
