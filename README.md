@@ -27,7 +27,7 @@ Deployment: Streamlit Cloud (current), with scope for AWS/GCP scaling
 
 🚀 Installation & Usage
 1️⃣ Clone the Repository
-git clone https://github.com/your-username/athenanet.git
+git clone https://github.com/PranavTripathi-1/athenanet.git
 cd athenanet
 
 2️⃣ Create Virtual Environment
@@ -44,7 +44,7 @@ streamlit run app.py
 5️⃣ Access the Web App
 
 Open your browser at:
-👉 [http://localhost:8501](https://athenanet.streamlit.app/)
+👉 https://athenanet.streamlit.app/
 
 📂 Project Structure
 athenanet/
